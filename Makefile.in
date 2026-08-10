@@ -1,8 +1,8 @@
 #
-# Makefile rules for the ncgb2 package
+# Makefile rules for the ncgb package
 #
-KEXT_NAME = ncgb2
-KEXT_SOURCES = src/ncgb2.cc
+KEXT_NAME = ncgb
+KEXT_SOURCES = src/ncgb.cc
 
 # include shared GAP package build system
 GAPPATH = @GAPPATH@

@@ -1,5 +1,5 @@
 #
-# ncgb2: This was my degree thesis project. It consist of a library for computing Gröbner basis in the free algebra.
+# ncgb: This was my degree thesis project. It consist of a library for computing Gröbner basis in the free algebra.
 #
 # This file is a script which compiles the package manual.
 #

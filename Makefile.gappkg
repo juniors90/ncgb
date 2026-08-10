@@ -39,6 +39,7 @@
 
 # read GAP's build settings
 include $(GAPPATH)/sysinfo.gap
+CXXFLAGS += -std=c++20
 
 # hack to support GAP <= 4.9
 ifndef GAP_KERNEL_MAJOR_VERSION
@@ -51,7 +52,7 @@ KEXT_CFLAGS += $(CPPFLAGS)
 KEXT_CFLAGS += $(CFLAGS)
 KEXT_CXXFLAGS += $(CPPFLAGS)
 KEXT_CXXFLAGS += $(CXXFLAGS)
-KEXT_LDFLAGS += $(LDFLAGS)
+KEXT_LDFLAGS += $(LDFLAGS) -lstdc++ -lgivaro -lgmp -lgmpxx -lflint -fopenmp
 
 # various derived settings
 KEXT_BINARCHDIR = bin/$(GAParch)

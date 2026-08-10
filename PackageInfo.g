@@ -1,5 +1,5 @@
 #
-# ncgb2: This was my degree thesis project. It consist of a library for computing Gröbner basis in the free algebra.
+# ncgb: This was my degree thesis project. It consist of a library for computing Gröbner basis in the free algebra.
 #
 # This file contains package meta data. For additional information on
 # the meaning and correct usage of these fields, please consult the
@@ -8,7 +8,7 @@
 #
 SetPackageInfo( rec(
 
-PackageName := "ncgb2",
+PackageName := "ncgb",
 Subtitle := "This was my degree thesis project. It consist of a library for computing Gröbner basis in the free algebra.",
 Version := "0.1",
 Date := "16/03/2025", # dd/mm/yyyy format
@@ -30,10 +30,10 @@ Persons := [
 
 SourceRepository := rec(
     Type := "git",
-    URL := "https://github.com/juniors90/ncgb2",
+    URL := "https://github.com/juniors90/ncgb",
 ),
 IssueTrackerURL := Concatenation( ~.SourceRepository.URL, "/issues" ),
-PackageWWWHome  := "https://juniors90.github.io/ncgb2/",
+PackageWWWHome  := "https://juniors90.github.io/ncgb/",
 PackageInfoURL  := Concatenation( ~.PackageWWWHome, "PackageInfo.g" ),
 README_URL      := Concatenation( ~.PackageWWWHome, "README.md" ),
 ArchiveURL      := Concatenation( ~.SourceRepository.URL,
@@ -55,7 +55,7 @@ Status := "dev",
 AbstractHTML   :=  "",
 
 PackageDoc := rec(
-  BookName  := "ncgb2",
+  BookName  := "ncgb",
   ArchiveURLSubset := ["doc"],
   HTMLStart := "doc/chap0_mj.html",
   PDFFile   := "doc/manual.pdf",
@@ -72,11 +72,11 @@ Dependencies := rec(
 
 AvailabilityTest := function()
   local dir, lib;
-  dir := DirectoriesPackagePrograms("ncgb2");
-  lib := Filename(dir, "ncgb2.so");
+  dir := DirectoriesPackagePrograms("ncgb");
+  lib := Filename(dir, "ncgb.so");
   if lib = fail then
     LogPackageLoadingMessage(PACKAGE_WARNING,
-                             "failed to load kernel module of package ncgb2");
+                             "failed to load kernel module of package ncgb");
     return fail;
   fi;
   return true;
