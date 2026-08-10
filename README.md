@@ -19,17 +19,20 @@ that is the license of GAP itself.
 
 # Quilombo de compiladores: Recompilar ncgb con libstdc++ correctamente
 
-Si ncgb.so fue compilado sin vincularse a libstdc++, es necesario recompilarlo correctamente. Si tienes acceso al código fuente, prueba:
+Si ncgb.so fue compilado sin vincularse a libstdc++, es necesario recompilarlo correctamente. Probar:
 
 ```shell
 g++ -shared -o bin/x86_64-pc-linux-gnu-default64-kv9/ncgb.so gen/src/ncgb.o -L/usr/lib/x86_64-linux-gnu -lstdc++
 ```
 
-Si ncgb.so fue compilado con gcc, pero usa C++, intenta recompilarlo con g++ en lugar de gcc para asegurar que libstdc++ se enlace correctamente
+Si ncgb.so fue compilado con gcc, pero usa C++, intentar recompilarlo con g++ en lugar de gcc para asegurar que libstdc++ se enlace correctamente
 
+```shell
 g++ -shared -Wall -Wextra -o bin/x86_64-pc-linux-gnu-default64-kv9/ncgb.so gen/src/ncgb.o -L/usr/lib/x86_64-linux-gnu -lstdc++
+```
+## Funciones del tipo GAP conectado al kernel 
 
-
+```c++
 Obj FuncInIdeal_BuchbergerCofactor(Obj self, Obj n, Obj f, Obj listGenG, Obj steps)
 {
 
@@ -92,3 +95,4 @@ Obj FuncInIdeal_BuchbergerCofactor(Obj self, Obj n, Obj f, Obj listGenG, Obj ste
     
     return result;
 }
+```
