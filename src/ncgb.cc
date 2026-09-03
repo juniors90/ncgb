@@ -46,6 +46,75 @@ typedef Poly<R> PM;
 // }
 
 
+P ObjToPoly(Obj p) {
+    if (LEN_LIST(p) != 2) {
+        // Dar error
+    }
+    Obj monomios = ELM_LIST(p, 1);
+    Obj coes = ELM_LIST(p, 2);
+    Int N = LEN_LIST(monomios);
+    vector<pair<Monomial<>, mpq_class>> q(N);
+    for (Int i = 1; i <= N; i++) {
+        Obj monomio = ELM_LIST(monomios, i);
+        Int M = LEN_LIST(monomio);
+        vector<__uint8_t> vals(M);
+        for (Int j = 1; j <= M; j++) {
+            vals[j-1] = INT_INTOBJ(ELM_LIST(monomio, j)) - 1;
+        }
+        q[i-1].first = Monomial(vals);
+        q[i-1].second = INT_INTOBJ(ELM_LIST(coes, i));
+    }
+    return P(q);
+}
+
+
+Obj PolyToObj(const P& p) {
+    const auto& terms = p.terms;
+    Int N = static_cast<Int>(terms.size());
+    Obj monomios = NEW_PLIST(T_PLIST, N);
+    Obj coes = NEW_PLIST(T_PLIST, N);
+    SET_LEN_PLIST(monomios, N);
+    SET_LEN_PLIST(coes, N);
+    Int i = 1;
+    for (const auto& term : terms) {
+        const Monomial<> & monomio = term.first;
+        const mpq_class& coef = term.second;
+        Int M = static_cast<Int>(monomio.vals.size());
+        Obj monomioObj = NEW_PLIST(T_PLIST, M);
+        SET_LEN_PLIST(monomioObj, M);
+        for (Int j = 1; j <= M; ++j) {
+            SET_ELM_PLIST(monomioObj, j, INTOBJ_INT(static_cast<Int>(monomio.vals[j - 1]) + 1));
+        }
+        Obj coefObj = INTOBJ_INT(static_cast<Int>(coef.get_num().get_si()));
+        SET_ELM_PLIST(monomios, i, monomioObj);
+        SET_ELM_PLIST(coes, i, coefObj);
+        ++i;
+    }
+    Obj result = NEW_PLIST(T_PLIST, 2);
+    SET_LEN_PLIST(result, 2);
+    SET_ELM_PLIST(result, 1, monomios);
+    SET_ELM_PLIST(result, 2, coes);
+    CHANGED_BAG(result);
+    return result;
+}
+
+/*
+Obj FuncTestFalopa(Obj self, Obj p) {
+    P p2 = ObjToPoly(p);
+    cout << "p2: ";
+    p2.nice_print();
+    return p;
+}
+*/
+
+Obj FuncTestFalopa(Obj self, Obj p)
+{
+    P p2 = ObjToPoly(p);  // lo paso de un Obj de GAP a un objeto de C/C++
+    cout << "p2: ";       // opero en C/C++
+    p2.nice_print();      // opero en C/C++
+    return PolyToObj(p2); //lo paso de un objeto de C/C++ a un Obj de GAP 
+}
+
 Obj FuncFalopa4(Obj self, Obj listGenG)
 {
     // Verificar que listGenG es una lista válida
@@ -95,8 +164,8 @@ Obj FuncFalopa4(Obj self, Obj listGenG)
     return result;
 }
 
-/*
-Obj FuncFalopa4(Obj self, Obj listGenG)
+
+Obj FuncFalopa4V2(Obj self, Obj listGenG)
 {
     if (!IS_PLIST(listGenG)) {
         ErrorMayQuit("Falopa4: Se esperaba una lista.", 0, 0);
@@ -136,7 +205,7 @@ Obj FuncFalopa4(Obj self, Obj listGenG)
 
     return result;
 }
-*/
+
 
 Obj FuncTestCommand(Obj self)
 {
@@ -273,6 +342,142 @@ Obj FuncInIdeal_BuchbergerCofactor(Obj self, Obj f, Obj listGenG, Obj steps)
 }
 
 
+
+
+
+/*
+Obj FuncInIdeal_BuchbergerCofactorViaGAP(Obj self, Obj f, Obj listGenG, Obj steps)
+{
+    // Verificar que listGenG es una lista válida
+    if (!IS_PLIST(listGenG)) {
+        ErrorMayQuit("InIdeal_BuchbergerCofactor: Se esperaba una lista de polinomios.", 0, 0);
+        return Fail;
+    }
+
+    // Verificar que steps es un entero
+    if (!IS_INTOBJ(steps)) {
+        ErrorMayQuit("InIdeal_BuchbergerCofactor: Se esperaba un número entero de pasos.", 0, 0);
+        return Fail;
+    }
+
+    // Obtener el número de generadores
+    Int numGen = LEN_LIST(listGenG);
+    if (numGen == 0) {
+        ErrorMayQuit("InIdeal_BuchbergerCofactor: La lista de generadores está vacía.", 0, 0);
+        return Fail;
+    }
+
+    // Convertir `listGenG` a un vector de polinomios `std::vector<P>`
+    std::vector<P> G(numGen);
+    for (Int i = 1; i <= numGen; i++) {
+        P polyStr = ObjToPoly(ELM_LIST(listGenG, i));
+        // Pasa el flujo a C++
+        G[i - 1] = polyStr;
+    }
+
+    // Convertir `f` a un polinomio `P`
+    P polyF = ObjToPoly(f);
+
+    // Convertir `steps` a un número entero C++
+    size_t k = INT_INTOBJ(steps);
+    k += G.size(); // Como en el código original
+
+    // Ejecutar el algoritmo de Buchberger
+    auto [ims, corep] = inIdealCofactor(G, polyF, k);
+
+    // Crear objeto GAP para la respuesta
+    const char* response;
+
+    // Convertir n de Obj a un entero C
+    //Int nn = INT_INTOBJ(n);
+    if (ims == InIdeal) {
+        response = "InIdeal";
+    }
+    else if (ims == NotInIdeal) {
+        response = "NotInIdeal";
+    }
+    else {
+        response = "Unknown";
+    }
+
+    Int len = strlen(response);
+    Obj result = NEW_STRING(len);
+    memcpy(CSTR_STRING(result), response, len);
+
+    return result;
+}
+*/
+
+Obj FuncInIdeal_BuchbergerCofactorViaGAP(Obj self, Obj f, Obj listGenG, Obj steps)
+{
+    if (!IS_PLIST(listGenG)) {
+        ErrorMayQuit(
+            "InIdeal_BuchbergerCofactorViaGAP: Se esperaba una lista de polinomios.",
+            0, 0
+        );
+        return Fail;
+    }
+
+    if (!IS_INTOBJ(steps)) {
+        ErrorMayQuit(
+            "InIdeal_BuchbergerCofactorViaGAP: Se esperaba un número entero de pasos.",
+            0, 0
+        );
+        return Fail;
+    }
+
+    Int numGen = LEN_LIST(listGenG);
+
+    if (numGen == 0) {
+        ErrorMayQuit(
+            "InIdeal_BuchbergerCofactorViaGAP: La lista de generadores está vacía.",
+            0, 0
+        );
+        return Fail;
+    }
+
+    /*
+     * Convertir los generadores GAP -> Poly
+     */
+    std::vector<P> G(numGen);
+
+    for (Int i = 1; i <= numGen; i++) {
+        G[i - 1] = ObjToPoly(ELM_LIST(listGenG, i));
+    }
+
+    /*
+     * Convertir f GAP -> Poly
+     */
+    P polyF = ObjToPoly(f);
+
+    /*
+     * Número máximo de pasos
+     */
+    size_t k = INT_INTOBJ(steps);
+    k += G.size();
+
+    /*
+     * Ejecutar Buchberger
+     */
+    auto [ims, corep] = inIdealCofactor(G, polyF, k);
+
+    /*
+     * Por ahora solamente devolvemos f convertido
+     * Poly -> GAP, para probar el flujo completo.
+     */
+    if (ims == InIdeal) {
+    return MakeString("InIdeal");
+}
+else if (ims == NotInIdeal) {
+    return MakeString("NotInIdeal");
+}
+else {
+    return MakeString("Unknown");
+}
+}
+
+
+
 // Table of functions to export
 static StructGVarFunc GVarFuncs[] = {
     GVAR_FUNC(TestCommand, 0, ""),
@@ -282,6 +487,9 @@ static StructGVarFunc GVarFuncs[] = {
     GVAR_FUNC(GetFirstPolynomial, 2, "ListPoly, steps"),
     GVAR_FUNC(InIdeal_BuchbergerCofactor, 3, "poly, listGenG, steps"),
     GVAR_FUNC(Falopa4, 1, "listGenG"),
+    GVAR_FUNC(Falopa4V2, 1, "listGenG"),
+    GVAR_FUNC(TestFalopa, 1,"p"),
+    GVAR_FUNC(InIdeal_BuchbergerCofactorViaGAP, 3, "f, listGenG, steps"),
 
     { 0 } /* Finish with an empty entry */
 };
